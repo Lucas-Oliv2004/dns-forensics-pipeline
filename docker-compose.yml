@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  # Zookeeper: Coordenador do cluster do Kafka
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.3.0
+    container_name: forensic-zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - network-security-mesh
+
+  # Apache Kafka: Onde os pacotes de rede vão trafegar em streaming
+  kafka:
+    image: confluentinc/cp-kafka:7.3.0
+    container_name: forensic-kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,PLAINTEXT_INTERNAL://kafka:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT_INTERNAL
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    volumes:
+      - .docker_data/kafka_data:/var/lib/kafka/data
+    networks:
+      - network-security-mesh
+
+  # PostgreSQL: Onde vamos salvar os alertas e análises para o Power BI
+  postgres:
+    image: postgres:15-alpine
+    container_name: forensic-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: forensic_user
+      POSTGRES_PASSWORD: forensic_secure_password_2026
+      POSTGRES_DB: network_forensics
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - network-security-mesh
+
+volumes:
+  postgres_data:
+
+networks:
+  network-security-mesh:
+    driver: bridge
