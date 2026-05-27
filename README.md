@@ -56,11 +56,15 @@ docker-compose up -d
 
 ### 3. Run the Analytics Engine
 Open a terminal inside the project directory and boot the PySpark processing stream:
+```bash
 python spark_processor.py
+```
 
 ### 4. Ignite the Network Traffic Ingestion
 Open a secondary terminal split and run the probe simulator to begin streaming data into the queue:
+```bash
 python producer.py
+```
 
 ### 5. Pipeline Monitoring Outputs
 When an anomaly threshold is broken, the Spark engine prints structural dataframes directly to the terminal console.
